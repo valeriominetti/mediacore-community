@@ -1,0 +1,171 @@
+<?php
+{%- set reldelim1 = reldelim1 is not defined and ' &raquo;' or reldelim1 %}
+{%- set reldelim2 = reldelim2 is not defined and ' |' or reldelim2 %}
+{%- set render_sidebar = (not embedded) and (not theme_nosidebar|tobool) and (sidebars != []) %}
+{%- set url_root = pathto('', 1) %}
+{%- if url_root == '#' %}{% set url_root = '' %}{% endif %} {# XXX necessary? #}
+{%- if not embedded and docstitle %}
+	{%- set titlesuffix = " &mdash; "|safe + docstitle|e %}
+{%- else %}
+	{%- set titlesuffix = "" %}
+{%- endif %}
+$headTitle = '{{ title|striptags|e }}{{ titlesuffix }}';
+$headMeta = array();
+$headMeta['description'] = 'You can use MediaCore to organize video and podcasts, engage users, and deliver content to both desktop and mobile devices.';
+$bodyClass = {% if pagename == 'index' %}'docs-home'{% else %}'docs'{% endif %};
+$headCss = array(
+	{%- for cssfile in css_files %}'{{ pathto(cssfile, 1) }}',{% endfor %}
+	'{{ pathto('_static/pygments.css', 1) }}',
+	'/styles/base.css',
+	'/styles/docs.css'
+);
+$headJs = array(
+	'/scripts/anim-docs-sidebar.js','/scripts/anim-anchors.js'
+	{%- for scriptfile in script_files %}
+		{#- avoid sphinx's jquery, we'll use our own #}
+		{%- if scriptfile != "_static/jquery.js" %},'{{ pathto(scriptfile, 1) }}'{%- endif %}
+	{%- endfor %}
+);
+$headExtra = <<<EOF
+	<script type="text/javascript">
+		var DOCUMENTATION_OPTIONS = {
+			URL_ROOT: '{{ url_root }}',
+			VERSION: '{{ release|e }}',
+			COLLAPSE_INDEX: false,
+			FILE_SUFFIX: '{{ '' if no_search_suffix else file_suffix }}',
+			HAS_SOURCE: {{ has_source|lower }}
+		};
+	</script>
+
+	{%- if use_opensearch %}
+		<link
+			rel="search"
+			type="application/opensearchdescription+xml"
+			title="{% trans docstitle=docstitle|e %}Search within {{ docstitle }}{% endtrans %}"
+			href="{{ pathto('_static/opensearch.xml', 1) }}"
+		/>
+	{%- endif %}
+
+	{%- if hasdoc('about') %}<link rel="author" title="{{ _('About these documents') }}" href="{{ pathto('about') }}" />{%- endif %}
+	{%- if hasdoc('genindex') %}<link rel="index" title="{{ _('Index') }}" href="{{ pathto('genindex') }}" />{%- endif %}
+	{%- if hasdoc('search') %}<link rel="search" title="{{ _('Search') }}" href="{{ pathto('search') }}" />{%- endif %}
+	{%- if hasdoc('copyright') %}<link rel="copyright" title="{{ _('Copyright') }}" href="{{ pathto('copyright') }}" />{%- endif %}
+	<link rel="top" title="{{ docstitle|e }}" href="{{ pathto('index') }}" />
+	{%- if parents %}<link rel="up" title="{{ parents[-1].title|striptags|e }}" href="{{ parents[-1].link|e }}" />{%- endif %}
+	{%- if next %}<link rel="next" title="{{ next.title|striptags|e }}" href="{{ next.link|e }}" />{%- endif %}
+	{%- if prev %}<link rel="prev" title="{{ prev.title|striptags|e }}" href="{{ prev.link|e }}" />{%- endif %}
+EOF;
+
+
+include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
+?>
+
+<div id="header-bottom"></div>
+
+<div class="container-960">
+
+	<div id="docs-header" class="alpha-p">
+		<h1><a href="{{ pathto(master_doc) }}">{{ shorttitle|e }}</a></h1>
+		<ul class="parents">
+			{%- for parent in parents %}
+				<li>
+					{{ reldelim1 }}
+					<a href="{{ parent.link|e }}" {% if loop.last %}{{ accesskey("U") }}{% endif %}>{{ parent.title }}</a>{{ reldelim1 }}
+				</li>
+			{%- endfor %}
+		</ul>
+		<ul class="relatives">
+			{%- for rellink in rellinks %}
+				<li {% if loop.last %}style="margin-right: 16px"{% endif %}>
+					<a href="{{ pathto(rellink[0]) }}" title="{{ rellink[1]|striptags }}" {{ accesskey(rellink[2]) }}>{{ rellink[3]|title }}</a>
+					{%- if not loop.last %}{{ reldelim2 }}{% endif %}
+				</li>
+			{%- endfor %}
+		</ul>
+	</div>
+
+	{# THE ACTUAL RENDERED DOCS APPEAR INSIDE THIS ELEMNT: #}
+	<div class="documentwrapper">
+		{%- if builder != 'htmlhelp' %}<div class="bodywrapper">{%- endif %}
+			<div class="body">
+				{% block body %}{% endblock %}
+			</div>
+		{%- if builder != 'htmlhelp' %}</div>{%- endif %}
+	</div>
+
+	{# THE LEFT SIDEBAR, WITH THE TABLE OF CONTENTS, APPEARS INSIDE THIS ELEMENT: #}
+	{%- if logo or display_toc or prev or next or customsidebar or pagename != "search" %}
+	<div class="sphinxsidebar">
+		<div class="box-top"></div>
+		<div class="sphinxsidebarwrapper">
+			{%- if logo %}
+				<p class="logo"><a href="{{ pathto(master_doc) }}">
+				<img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
+				</a></p>
+			{%- endif %}
+
+			{%- if display_toc %}
+				<h3><a href="{{ pathto(master_doc) }}">{{ _('Table Of Contents') }}</a></h3>
+				<h4>{{ _('Current topic') }}</h4>
+				{{ toc }}
+				<hr class="box-divider" />
+			{%- endif %}
+
+			{%- if prev %}
+				<h4>{{ _('Previous topic') }}</h4>
+				<p class="topless">
+					<a href="{{ prev.link|e }}" title="{{ _('previous chapter') }}">{{ prev.title }}</a>
+				</p>
+				<hr class="box-divider" />
+			{%- endif %}
+
+			{%- if next %}
+				<h4>{{ _('Next topic') }}</h4>
+				<p class="topless">
+					<a href="{{ next.link|e }}" title="{{ _('next chapter') }}">{{ next.title }}</a>
+				</p>
+				<hr class="box-divider" />
+			{%- endif %}
+
+			{%- if show_source and has_source and sourcename %}
+				<h3>{{ _('This Page') }}</h3>
+				<ul class="this-page-menu">
+					<li>
+						<a href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="nofollow">{{ _('Show Source') }}</a>
+					</li>
+				</ul>
+				<hr class="box-divider" />
+			{%- endif %}
+
+			{%- if customsidebar %}
+				{% include customsidebar %}
+			{%- endif %}
+
+			{%- if pagename != "search" %}
+				<div id="searchbox">
+					<h3>{{ _('Search Docs') }}</h3>
+					<div id="quicksearch">
+						<form class="searchform" action="{{ pathto('search') }}" method="get">
+							<input id="search" type="text" name="q" size="18" />
+							<input type="hidden" name="check_keywords" value="yes" />
+							<input type="hidden" name="area" value="default" />
+						</form>
+					</div>
+					<p class="searchtip" style="font-size: 90%">
+					{{ _('Enter search terms or a module, class or function name.') }}
+					</p>
+				</div>
+				<script type="text/javascript">$('searchbox').show(0);</script>
+			{%- endif %}
+
+		</div>
+		<div class="box-bottom"></div>
+
+	</div>
+	{%- endif %}
+
+	<div class="clearer"></div>
+</div>
+<?php
+include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php';
+?>
