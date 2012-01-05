@@ -27,28 +27,8 @@ $headJs = array(
 	{%- endfor %}
 );
 $headExtra = <<<EOF
-	<script type="text/javascript">
-		var DOCUMENTATION_OPTIONS = {
-			URL_ROOT: '{{ url_root }}',
-			VERSION: '{{ release|e }}',
-			COLLAPSE_INDEX: false,
-			FILE_SUFFIX: '{{ '' if no_search_suffix else file_suffix }}',
-			HAS_SOURCE: {{ has_source|lower }}
-		};
-	</script>
-
-	{%- if use_opensearch %}
-		<link
-			rel="search"
-			type="application/opensearchdescription+xml"
-			title="{% trans docstitle=docstitle|e %}Search within {{ docstitle }}{% endtrans %}"
-			href="{{ pathto('_static/opensearch.xml', 1) }}"
-		/>
-	{%- endif %}
-
 	{%- if hasdoc('about') %}<link rel="author" title="{{ _('About these documents') }}" href="{{ pathto('about') }}" />{%- endif %}
 	{%- if hasdoc('genindex') %}<link rel="index" title="{{ _('Index') }}" href="{{ pathto('genindex') }}" />{%- endif %}
-	{%- if hasdoc('search') %}<link rel="search" title="{{ _('Search') }}" href="{{ pathto('search') }}" />{%- endif %}
 	{%- if hasdoc('copyright') %}<link rel="copyright" title="{{ _('Copyright') }}" href="{{ pathto('copyright') }}" />{%- endif %}
 	<link rel="top" title="{{ docstitle|e }}" href="{{ pathto('index') }}" />
 	{%- if parents %}<link rel="up" title="{{ parents[-1].title|striptags|e }}" href="{{ parents[-1].link|e }}" />{%- endif %}
@@ -140,24 +120,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 			{%- if customsidebar %}
 				{% include customsidebar %}
 			{%- endif %}
-
-			{%- if pagename != "search" %}
-				<div id="searchbox">
-					<h3>{{ _('Search Docs') }}</h3>
-					<div id="quicksearch">
-						<form class="searchform" action="{{ pathto('search') }}" method="get">
-							<input id="search" type="text" name="q" size="18" />
-							<input type="hidden" name="check_keywords" value="yes" />
-							<input type="hidden" name="area" value="default" />
-						</form>
-					</div>
-					<p class="searchtip" style="font-size: 90%">
-					{{ _('Enter search terms or a module, class or function name.') }}
-					</p>
-				</div>
-				<script type="text/javascript">$('searchbox').show(0);</script>
-			{%- endif %}
-
 		</div>
 		<div class="box-bottom"></div>
 
